@@ -1,18 +1,16 @@
 name: Auto Retrain KNN
-run: |
-     export PYTHONPATH=$PYTHONPATH:$(pwd)
-     python src/auto_train.py
-  
+
 on:
   push:
-    paths:
-      - 'data/network_data.csv'
+    branches:
+      - main
 
 jobs:
   retrain:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v3
 
       - name: Set up Python
@@ -21,16 +19,10 @@ jobs:
           python-version: '3.10'
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
-
-      - name: Retrain model
-        run: python src/auto_train.py
-
-      - name: Commit new model
         run: |
-          git config --global user.name "github-actions"
-          git config --global user.email "actions@github.com"
-          git add models/knn_model.pkl models/last_hash.txt
-          git commit -m "🤖 Model retrained automatically"
-          git push
-       
+          pip install -r requirements.txt
+
+      - name: Run training
+        run: |
+          export PYTHONPATH=$PYTHONPATH:$(pwd)
+          python src/auto_train.py
