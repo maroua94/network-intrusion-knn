@@ -1,7 +1,7 @@
 import os
 import time
 import hashlib
-from src.train import train_model  # tu appelles ton script d’entraînement
+from train import train_model  # tu appelles ton script d’entraînement
 
 DATA_PATH = "data/network_data.csv"
 MODEL_PATH = "models/knn_model.pkl"

@@ -1,5 +1,8 @@
 name: Auto Retrain KNN
-
+run: |
+     export PYTHONPATH=$PYTHONPATH:$(pwd)
+     python src/auto_train.py
+  
 on:
   push:
     paths:
@@ -30,3 +33,4 @@ jobs:
           git add models/knn_model.pkl models/last_hash.txt
           git commit -m "🤖 Model retrained automatically"
           git push
+       
