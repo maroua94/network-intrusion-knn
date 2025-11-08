@@ -14,8 +14,8 @@ def train_model():
     data = pd.read_csv(data_path)
 
     # Suppose que le dataset a une colonne 'label' pour la classe
-    X = data.drop("label", axis=1)
-    y = data["label"]
+    X = data.drop("attaque", axis=1)
+    y = data["attaque"]
 
     # Séparation des données
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
