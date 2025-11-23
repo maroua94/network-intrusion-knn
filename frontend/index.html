@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Système de Détection d'Intrusion - KNN</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <span class="shield-icon">🛡️</span>
+                <h1>Détection d'Intrusion KNN</h1>
+            </div>
+            <div class="status-badge" id="systemStatus">
+                <span class="status-dot"></span>
+                Système Actif
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Prediction Form Card -->
+            <div class="card prediction-card">
+                <div class="card-header">
+                    <h2>📊 Analyse de Connexion</h2>
+                    <p class="card-subtitle">Entrez les paramètres de la connexion à analyser</p>
+                </div>
+                
+                <form id="predictionForm" class="prediction-form">
+                    <div class="form-group">
+                        <label for="nbPackets">
+                            <span class="label-icon">📦</span>
+                            Nombre de Paquets
+                        </label>
+                        <input 
+                            type="number" 
+                            id="nbPackets" 
+                            name="nb_packets" 
+                            placeholder="Ex: 150"
+                            required
+                            min="0"
+                            step="1"
+                        >
+                        <span class="input-hint">Nombre total de paquets transmis</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="dureeConnexion">
+                            <span class="label-icon">⏱️</span>
+                            Durée de Connexion (secondes)
+                        </label>
+                        <input 
+                            type="number" 
+                            id="dureeConnexion" 
+                            name="duree_connexion" 
+                            placeholder="Ex: 45.5"
+                            required
+                            min="0"
+                            step="0.01"
+                        >
+                        <span class="input-hint">Durée totale de la connexion en secondes</span>
+                    </div>
+
+                    <button type="submit" class="btn-predict" id="predictBtn">
+                        <span class="btn-icon">🔍</span>
+                        Analyser la Connexion
+                    </button>
+                </form>
+
+                <!-- Loader -->
+                <div class="loader-container" id="loader" style="display: none;">
+                    <div class="loader"></div>
+                    <p>Analyse en cours...</p>
+                </div>
+
+                <!-- Result Display -->
+                <div class="result-container" id="resultContainer" style="display: none;">
+                    <div class="result-card" id="resultCard">
+                        <div class="result-icon" id="resultIcon"></div>
+                        <div class="result-content">
+                            <h3 id="resultTitle"></h3>
+                            <p id="resultMessage"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Error Display -->
+                <div class="error-container" id="errorContainer" style="display: none;">
+                    <div class="error-card">
+                        <span class="error-icon">⚠️</span>
+                        <div class="error-content">
+                            <h4>Erreur de Connexion</h4>
+                            <p id="errorMessage">Impossible de contacter l'API. Vérifiez que le serveur est démarré.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History Card -->
+            <div class="card history-card">
+                <div class="card-header">
+                    <h2>📜 Historique des Analyses</h2>
+                    <button class="btn-clear" id="clearHistoryBtn">
+                        <span>🗑️</span> Effacer
+                    </button>
+                </div>
+                
+                <div class="history-container">
+                    <div class="empty-state" id="emptyState">
+                        <span class="empty-icon">📭</span>
+                        <p>Aucune analyse effectuée</p>
+                    </div>
+                    <div class="table-container" id="historyTable" style="display: none;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Heure</th>
+                                    <th>Paquets</th>
+                                    <th>Durée (s)</th>
+                                    <th>Résultat</th>
+                                    <th>Statut</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historyBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>© 2024 Système de Détection d'Intrusion KNN | Propulsé par Machine Learning</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

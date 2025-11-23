@@ -1,9 +1,9 @@
-name: Auto Retrain KNN
+name: Auto Retrain Model
 
 on:
   push:
-    branches:
-      - main
+    paths:
+      - "data/dataset.csv"
 
 jobs:
   retrain:
@@ -16,13 +16,16 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
+          python-version: "3.10"
 
       - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
+        run: pip install -r requirements.txt
 
-      - name: Run training
-        run: |
-          export PYTHONPATH=$PYTHONPATH:$(pwd)
-          python src/auto_train.py
+      - name: Retrain model
+        run: python src/auto_train.py
+
+      - name: Upload trained model
+        uses: actions/upload-artifact@v3
+        with:
+          name: knn-model
+          path: models/knn_model.pkl
