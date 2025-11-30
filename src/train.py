@@ -1,36 +1,58 @@
 import pandas as pd
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.preprocessing import StandardScaler
+import numpy as np
 import joblib
 import os
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.neighbors import KNeighborsClassifier
 
-DATA_PATH = "data/network_data.csv"
-MODEL_PATH = "models/knn_model.pkl"
+# Créer le dossier models/ s'il n'existe pas
+if not os.path.exists('models'):
+    os.makedirs('models')
 
-def train_model():
-    print(" Chargement du dataset :", DATA_PATH)
+# Charger le fichier
+df = pd.read_csv('data/train.csv')
 
-    # Charger dataset simple
-    df = pd.read_csv(DATA_PATH)
+# Séparer X et y
+X = df.drop('class', axis=1)
+y = df['class']
 
-    # Séparer X et y
-    X = df[["nb_packets", "duree_connexion"]]
-    y = df["etat"]   # normal ou anormal
+# Identifier les colonnes catégorielles
+categorical_cols = X.select_dtypes(include='object').columns.tolist()
 
-    # Normalisation
-    scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(X)
+# Créer et entraîner les encoders
+encoders = {}
+for col in categorical_cols:
+    encoder = LabelEncoder()
+    encoder.fit(X[col])
+    X[col] = encoder.transform(X[col])
+    encoders[col] = encoder
 
-    # Modèle KNN
-    model = KNeighborsClassifier(n_neighbors=3)
-    model.fit(X_scaled, y)
+# Sauvegarder tous les encoders
+joblib.dump(encoders, 'models/encoders.pkl')
 
-    # Sauvegarde du modèle
-    os.makedirs("models", exist_ok=True)
-    joblib.dump({"model": model, "scaler": scaler}, MODEL_PATH)
+# Diviser train/test
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
 
-    print("\n Modèle SIMPLE entraîné avec succès !")
-    print(" Modèle sauvegardé dans :", MODEL_PATH)
+# Créer et entraîner le scaler
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
 
-if __name__ == "__main__":
-    train_model()
+# Sauvegarder le scaler
+joblib.dump(scaler, 'models/scaler.pkl')
+
+# Créer et entraîner le modèle k-NN
+model = KNeighborsClassifier(n_neighbors=5)
+model.fit(X_train, y_train)
+
+# Calculer l'accuracy
+accuracy = model.score(X_test, y_test)
+print(f"Accuracy: {accuracy}")
+
+# Sauvegarder le modèle
+joblib.dump(model, 'models/knn_model.pkl')
+
+print("Training completed. Models saved in models/.")

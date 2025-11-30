@@ -3,141 +3,518 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Système de Détection d'Intrusion - KNN</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Détection d'Intrusion</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f1419 0%, #1a2332 100%);
+            min-height: 100vh;
+            color: #e0e0e0;
+            padding: 30px 20px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            padding: 0 20px;
+        }
+        .title-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .shield-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+        }
+        .title-section h1 {
+            font-size: 28px;
+            color: #ffffff;
+            font-weight: 600;
+        }
+        .title-section p {
+            color: #888;
+            font-size: 14px;
+        }
+        .system-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #00d4ff;
+            font-size: 14px;
+        }
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #00d4ff;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .main-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        .card {
+            background: rgba(20, 40, 60, 0.5);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 12px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+        }
+        .card h2 {
+            font-size: 20px;
+            color: #ffffff;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .card-subtitle {
+            color: #888;
+            font-size: 13px;
+            margin-bottom: 25px;
+        }
+        .form-group {
+            margin-bottom: 22px;
+        }
+        .form-group label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #00d4ff;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .icon-label {
+            font-size: 16px;
+        }
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(30, 50, 75, 0.8);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 6px;
+            color: #ffffff;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        input::placeholder {
+            color: #666;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #00d4ff;
+            background: rgba(30, 50, 75, 1);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+        }
+        .btn-analyse {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+            color: #0f1419;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+        .btn-analyse:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 212, 255, 0.4);
+        }
+        .btn-analyse:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        .result-card {
+            background: rgba(20, 40, 60, 0.5);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(10px);
+        }
+        .shield-large {
+            font-size: 80px;
+            margin-bottom: 20px;
+            opacity: 0.6;
+        }
+        .result-card p {
+            color: #888;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        #result {
+            display: none;
+            animation: slideIn 0.4s ease-out;
+        }
+        #result.show {
+            display: flex;
+        }
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        #result.normal {
+            border: 2px solid rgba(0, 200, 100, 0.4);
+            background: rgba(0, 200, 100, 0.1);
+        }
+        #result.normal .shield-large {
+            opacity: 1;
+        }
+        #result.anomaly {
+            border: 2px solid rgba(255, 100, 100, 0.4);
+            background: rgba(255, 100, 100, 0.1);
+        }
+        #result.anomaly .shield-large {
+            opacity: 1;
+        }
+        .result-text {
+            font-size: 22px;
+            font-weight: 600;
+            color: #ffffff;
+        }
+        .stats-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .stat-box {
+            background: rgba(20, 40, 60, 0.5);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+        .stat-box .label {
+            color: #888;
+            font-size: 13px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .stat-box .value {
+            font-size: 32px;
+            font-weight: 600;
+            color: #00d4ff;
+        }
+        .stat-box.normal .value {
+            color: #00c864;
+        }
+        .stat-box.anomaly .value {
+            color: #ff6464;
+        }
+        .history-card {
+            background: rgba(20, 40, 60, 0.5);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 12px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+        }
+        .history-card h3 {
+            color: #ffffff;
+            font-size: 16px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .history-card p {
+            color: #888;
+            font-size: 13px;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+        }
+        .spinner {
+            border: 3px solid rgba(0, 212, 255, 0.2);
+            border-top: 3px solid #00d4ff;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        @media (max-width: 768px) {
+            .main-container {
+                grid-template-columns: 1fr;
+            }
+            .header {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Header -->
-        <header class="header">
-            <div class="logo">
-                <span class="shield-icon">🛡️</span>
-                <h1>Détection d'Intrusion KNN</h1>
+    <div class="header">
+        <div class="title-section">
+            <div class="shield-icon">🛡️</div>
+            <div>
+                <h1>Détection d'Intrusion</h1>
+                <p>Système de surveillance réseau – Algorithme KNN</p>
             </div>
-            <div class="status-badge" id="systemStatus">
-                <span class="status-dot"></span>
-                Système Actif
-            </div>
-        </header>
-
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- Prediction Form Card -->
-            <div class="card prediction-card">
-                <div class="card-header">
-                    <h2>📊 Analyse de Connexion</h2>
-                    <p class="card-subtitle">Entrez les paramètres de la connexion à analyser</p>
-                </div>
-                
-                <form id="predictionForm" class="prediction-form">
-                    <div class="form-group">
-                        <label for="nbPackets">
-                            <span class="label-icon">📦</span>
-                            Nombre de Paquets
-                        </label>
-                        <input 
-                            type="number" 
-                            id="nbPackets" 
-                            name="nb_packets" 
-                            placeholder="Ex: 150"
-                            required
-                            min="0"
-                            step="1"
-                        >
-                        <span class="input-hint">Nombre total de paquets transmis</span>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="dureeConnexion">
-                            <span class="label-icon">⏱️</span>
-                            Durée de Connexion (secondes)
-                        </label>
-                        <input 
-                            type="number" 
-                            id="dureeConnexion" 
-                            name="duree_connexion" 
-                            placeholder="Ex: 45.5"
-                            required
-                            min="0"
-                            step="0.01"
-                        >
-                        <span class="input-hint">Durée totale de la connexion en secondes</span>
-                    </div>
-
-                    <button type="submit" class="btn-predict" id="predictBtn">
-                        <span class="btn-icon">🔍</span>
-                        Analyser la Connexion
-                    </button>
-                </form>
-
-                <!-- Loader -->
-                <div class="loader-container" id="loader" style="display: none;">
-                    <div class="loader"></div>
-                    <p>Analyse en cours...</p>
-                </div>
-
-                <!-- Result Display -->
-                <div class="result-container" id="resultContainer" style="display: none;">
-                    <div class="result-card" id="resultCard">
-                        <div class="result-icon" id="resultIcon"></div>
-                        <div class="result-content">
-                            <h3 id="resultTitle"></h3>
-                            <p id="resultMessage"></p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Error Display -->
-                <div class="error-container" id="errorContainer" style="display: none;">
-                    <div class="error-card">
-                        <span class="error-icon">⚠️</span>
-                        <div class="error-content">
-                            <h4>Erreur de Connexion</h4>
-                            <p id="errorMessage">Impossible de contacter l'API. Vérifiez que le serveur est démarré.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- History Card -->
-            <div class="card history-card">
-                <div class="card-header">
-                    <h2>📜 Historique des Analyses</h2>
-                    <button class="btn-clear" id="clearHistoryBtn">
-                        <span>🗑️</span> Effacer
-                    </button>
-                </div>
-                
-                <div class="history-container">
-                    <div class="empty-state" id="emptyState">
-                        <span class="empty-icon">📭</span>
-                        <p>Aucune analyse effectuée</p>
-                    </div>
-                    <div class="table-container" id="historyTable" style="display: none;">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Heure</th>
-                                    <th>Paquets</th>
-                                    <th>Durée (s)</th>
-                                    <th>Résultat</th>
-                                    <th>Statut</th>
-                                </tr>
-                            </thead>
-                            <tbody id="historyBody">
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </main>
-
-        <!-- Footer -->
-        <footer class="footer">
-            <p>© 2024 Système de Détection d'Intrusion KNN | Propulsé par Machine Learning</p>
-        </footer>
+        </div>
+        <div class="system-status">
+            <div class="status-dot"></div>
+            Système actif
+        </div>
     </div>
 
-    <script src="script.js"></script>
+    <div class="main-container">
+        <div>
+            <div class="card">
+                <h2><span class="icon-label">🔍</span>Analyser le trafic réseau</h2>
+                <p class="card-subtitle">Entrez les données de connexion pour détecter d'éventuelles intrusions</p>
+
+                <form onsubmit="sendData(event)">
+                    <div class="form-group">
+                        <label><span class="icon-label">📦</span>Nombre de paquets</label>
+                        <input type="number" id="src_bytes" value="150" min="0" placeholder="Ex: 150" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label><span class="icon-label">⏱️</span>Durée de connexion (secondes)</label>
+                        <input type="number" id="duration" value="30" min="0" placeholder="Ex: 30" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label><span class="icon-label">🔌</span>Protocol Type</label>
+                        <select id="protocol_type" required>
+                            <option value="">-- Sélectionner --</option>
+                            <option value="tcp">TCP</option>
+                            <option value="udp">UDP</option>
+                            <option value="icmp">ICMP</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label><span class="icon-label">📡</span>Service</label>
+                        <select id="service" required>
+                            <option value="">-- Sélectionner --</option>
+                            <option value="http">HTTP</option>
+                            <option value="ftp">FTP</option>
+                            <option value="smtp">SMTP</option>
+                            <option value="domain_u">Domain_U</option>
+                            <option value="ssh">SSH</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label><span class="icon-label">🚩</span>Flag</label>
+                        <select id="flag" required>
+                            <option value="">-- Sélectionner --</option>
+                            <option value="SF">SF</option>
+                            <option value="S0">S0</option>
+                            <option value="REJ">REJ</option>
+                            <option value="S1">S1</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label><span class="icon-label">📊</span>Destination Bytes</label>
+                        <input type="number" id="dst_bytes" value="5450" min="0" placeholder="Ex: 5450" required>
+                    </div>
+
+                    <button type="submit" class="btn-analyse">🔎 Analyser</button>
+                </form>
+            </div>
+
+            <div class="stats-container">
+                <div class="stat-box normal">
+                    <div class="label">✓ Connexions normales</div>
+                    <div class="value" id="normal-count">0</div>
+                </div>
+                <div class="stat-box anomaly">
+                    <div class="label">⚠ Attaques détectées</div>
+                    <div class="value" id="anomaly-count">0</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div class="result-card" id="result">
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>En attente d'analyse...</p>
+                </div>
+                <div id="result-content" style="display: none;">
+                    <div class="shield-large" id="result-icon"></div>
+                    <div class="result-text" id="result-text"></div>
+                    <p id="result-description"></p>
+                </div>
+            </div>
+
+            <div class="result-card" style="min-height: auto; padding: 30px;">
+                <p style="color: #e0e0e0; font-size: 14px;">En attente d'analyse...</p>
+                <p style="color: #888; font-size: 12px; margin-top: 10px;">Entrez les données réseau pour commencer la détection</p>
+            </div>
+
+            <div class="history-card">
+                <h3><span style="font-size: 18px;">⏰</span>Historique des analyses</h3>
+                <p id="history-text">Aucune analyse effectuée pour le moment</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let analysisCount = { normal: 0, anomaly: 0 };
+
+        async function sendData(event) {
+            event.preventDefault();
+            
+            const resultBox = document.getElementById("result");
+            const loading = document.getElementById("loading");
+            const resultContent = document.getElementById("result-content");
+            const button = event.target.querySelector('button');
+            
+            resultBox.classList.add("show");
+            loading.style.display = "block";
+            resultContent.style.display = "none";
+            button.disabled = true;
+
+            const data = {
+                duration: parseInt(document.getElementById("duration").value),
+                protocol_type: document.getElementById("protocol_type").value,
+                service: document.getElementById("service").value,
+                flag: document.getElementById("flag").value,
+                src_bytes: parseInt(document.getElementById("src_bytes").value),
+                dst_bytes: parseInt(document.getElementById("dst_bytes").value),
+                land: 0,
+                wrong_fragment: 0,
+                urgent: 0,
+                hot: 0,
+                num_failed_logins: 0,
+                logged_in: 1,
+                num_compromised: 0,
+                root_shell: 0,
+                su_attempted: 0,
+                num_root: 0,
+                num_file_creations: 0,
+                num_shells: 0,
+                num_access_files: 0,
+                num_outbound_cmds: 0,
+                is_host_login: 0,
+                is_guest_login: 0,
+                count: 9,
+                srv_count: 9,
+                serror_rate: 0.0,
+                srv_serror_rate: 0.0,
+                rerror_rate: 0.0,
+                srv_rerror_rate: 0.0,
+                same_srv_rate: 1.0,
+                diff_srv_rate: 0.0,
+                srv_diff_host_rate: 0.0,
+                dst_host_count: 9,
+                dst_host_srv_count: 9,
+                dst_host_same_srv_rate: 1.0,
+                dst_host_diff_srv_rate: 0.0,
+                dst_host_same_src_port_rate: 1.0,
+                dst_host_srv_diff_host_rate: 0.0,
+                dst_host_serror_rate: 0.0,
+                dst_host_srv_serror_rate: 0.0,
+                dst_host_rerror_rate: 0.0,
+                dst_host_srv_rerror_rate: 0.0
+            };
+
+            try {
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
+                const response = await fetch("http://127.0.0.1:8000/predict", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Erreur serveur: ${response.status}`);
+                }
+
+                const result = await response.json();
+                
+                loading.style.display = "none";
+                resultContent.style.display = "block";
+                
+                if (result.prediction === "normal") {
+                    resultBox.classList.remove("anomaly");
+                    resultBox.classList.add("normal");
+                    document.getElementById("result-icon").textContent = "✓";
+                    document.getElementById("result-text").textContent = "Connexions normales";
+                    document.getElementById("result-description").textContent = "Aucune menace détectée";
+                    analysisCount.normal++;
+                } else {
+                    resultBox.classList.remove("normal");
+                    resultBox.classList.add("anomaly");
+                    document.getElementById("result-icon").textContent = "⚠";
+                    document.getElementById("result-text").textContent = "Attaque détectée !";
+                    document.getElementById("result-description").textContent = "Activité suspecte identifiée";
+                    analysisCount.anomaly++;
+                }
+                
+                document.getElementById("normal-count").textContent = analysisCount.normal;
+                document.getElementById("anomaly-count").textContent = analysisCount.anomaly;
+                document.getElementById("history-text").textContent = `${analysisCount.normal + analysisCount.anomaly} analyse(s) effectuée(s)`;
+                
+            } catch (error) {
+                loading.style.display = "none";
+                resultContent.style.display = "block";
+                resultBox.classList.add("anomaly");
+                document.getElementById("result-icon").textContent = "❌";
+                document.getElementById("result-text").textContent = "Erreur de connexion";
+                document.getElementById("result-description").textContent = "Vérifiez que l'API est active";
+            } finally {
+                button.disabled = false;
+            }
+        }
+    </script>
 </body>
 </html>
